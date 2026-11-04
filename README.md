@@ -94,6 +94,38 @@ La confianza es la puntuación que asigna el modelo a su categoría ganadora;
 no está calibrada como probabilidad y no garantiza que la clasificación sea
 correcta.
 
+## Flujograma del proceso completo
+
+El diagrama resume el flujo desde las fotos de entrenamiento hasta el resultado
+que muestra la aplicación. GitHub representa este diagrama Mermaid al visualizar
+el README.
+
+```mermaid
+flowchart TD
+    A["Organizar fotos etiquetadas<br/>data/train/lapiz y data/train/lapicera"] --> B["Cargar y redimensionar fotos<br/>a 160 × 160"]
+    B --> C["Aplicar aumentos de datos<br/>y preparar MobileNetV2 preentrenada"]
+    C --> D["Entrenar la capa clasificadora<br/>sobre las fotos de train"]
+    D --> E["Evaluar con data/validation"]
+    E --> F{"¿Mejora la pérdida<br/>de validación?"}
+    F -- "Sí: continuar (máx. 20 épocas)" --> D
+    F -- "No: detener con early stopping" --> G["Guardar el modelo<br/>models/clasificador.keras"]
+    G --> H["Guardar nombres de clases<br/>y tamaño de imagen en clases.json"]
+    H --> I["Iniciar la web<br/>uv run streamlit run app.py"]
+    I --> J["Cargar modelo y metadatos<br/>en la aplicación local"]
+    J --> K["Usuario sube una foto<br/>JPG, PNG o WEBP"]
+    K --> L["Corregir orientación,<br/>convertir a RGB y redimensionar"]
+    L --> M["El modelo calcula puntuaciones<br/>para lápiz y lapicera"]
+    M --> N["Elegir la clase con<br/>la puntuación más alta"]
+    N --> O["Mostrar categoría<br/>y confianza estimada"]
+```
+
+Para repetir el flujo en una computadora que ya tiene el proyecto preparado:
+
+1. Colocá fotos etiquetadas en `data/train/` y `data/validation/`.
+2. Ejecutá `uv run python train.py` para generar o actualizar el modelo.
+3. Ejecutá `uv run streamlit run app.py` para abrir la aplicación local.
+4. Cargá una foto en la página y leé la categoría y la confianza estimada.
+
 ## Tecnologías y bibliotecas
 
 Las versiones exactas quedan fijadas en `uv.lock`; el proyecto declara:
